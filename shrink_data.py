@@ -1,22 +1,30 @@
-import pandas as pd 
+import pandas as pd
+import os
 
-input_file = "flight_sample_2022-09-03.csv.gz"
+input_folder = "./"
+output_folder = "./shrinked/"
+os.makedirs(output_folder, exist_ok=True)
 
-print("Loading data...")
-df = pd.read_csv(input_file, compression="gzip")
+files_to_shrink = [
+    "flight_sample_2022-09-01.csv.gz",
+    "flight_sample_2022-09-03.csv.gz",
+    "flight_sample_2022-09-02.csv.gz",
+    "states.csv"
+]
 
-print(f"Original shape: {df.shape}")
+for filename in files_to_shrink:
+    input_file = os.path.join(input_folder, filename)
+    print(f"Processing {filename}...")
 
-print("Columns in file:")
-print(df.columns)
+    # Check if file is gzipped or not
+    if filename.endswith('.gz'):
+        df = pd.read_csv(input_file, compression='gzip')
+    else:
+        df = pd.read_csv(input_file)  # no compression
 
-df_small = df.sample(n=1000, random_state=42) 
+    df_small = df.sample(frac=0.1)
+    output_file = os.path.join(output_folder, f"small_{filename.replace('.gz','')}")
+    df_small.to_csv(output_file, index=False)
 
-colums_to_keep = ['FL_DATE', 'OP_CARRIER', 'ORIGIN', 'DEST', 'DEP_TIME', 'ARR_TIME'] 
+    print(f"Saved smaller file as {output_file}")
 
-print(f"Reduced shape: {df_small.shape}")
-
-output_file = "flight_sample_SMALL.csv"
-df_small.to_csv(output_file, index=False)
-
-print(f"Saved reduced file as: {output_file}")
